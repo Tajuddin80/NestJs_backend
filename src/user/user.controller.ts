@@ -1,47 +1,38 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserService } from './user.service';
 
 @Controller('user')
+// this is root route
 
 export class UserController {
+    constructor(private readonly userService: UserService) { }
+
     // GET /user
     @Get()
-    getUsers(@Query('name') name: string) {
-        const users = [
-            { id: 1, name: 'Tajuddin' },
-            { id: 2, name: 'Imran' },
-            { id: 3, name: 'Ali' },
-            { id: 4, name: 'Ahmed' },
-            { id: 5, name: 'Hasan' },
-        ];
-        // console.log("name", name);
-        if (name) {
-            return users.filter((user) =>
-                user.name.toLowerCase().includes(name.toLowerCase())
-            );
-        }
-        return users;
+    getUsers(@Query('name') name: string): unknown {
+        return this.userService.findAllUsers(name);
     }
 
     @Get(':id')
-    getUserById(@Param('id') id: string) {
-        return { id, name: 'Tajuddin' };
+    getUserById(@Param('id') id: string): unknown {
+        return this.userService.findOneUser(Number(id));
     }
 
     @Post()
-    createUser(@Body() createUserDto: CreateUserDto) {
-        return {
-            data: createUserDto, message: 'User created successfully!'
-        };
+    createUser(@Body() createUserDto: CreateUserDto): unknown {
+        return this.userService.createUser(createUserDto);
     }
 
     @Put(':id')
-    updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-        return {
-            data: { id, ...updateUserDto },
-            message: 'User updated successfully'
-        }
+    updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): unknown {
+        return this.userService.updateUser(Number(id), updateUserDto);
+    }
+
+    @Delete(':id')
+    deleteUser(@Param('id') id: string): unknown {
+        return this.userService.deleteUser(Number(id))
     }
 
 }
