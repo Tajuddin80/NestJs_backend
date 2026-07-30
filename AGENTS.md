@@ -20,20 +20,23 @@ Verification order: `npm run lint && npm test && npm run test:e2e`
 ## Architecture
 
 - **Entrypoint**: `src/main.ts` — registers `ValidationPipe` + `TransformInterceptor` globally, listens on `PORT` (default 3000)
-- **Modules**: `AppModule` imports `UserModule`
+- **Modules**: `AppModule` imports `UserModule` and applies `ApiKeyMiddleware` to `UserController` routes
 - **User module**: `UserController` (routes under `/user`), `UserService`, `LoggerService`
+- **Auth layers**:
+  - `ApiKeyMiddleware` — checks `x-api-key` header on all `/user` routes
+  - `RoleGuard` — checks `role: admin` header on `DELETE /user/:id`
 - **DTOs**: `CreateUserDto` (`src/user/dto/`) uses `class-validator`; `UpdateUserDto` extends via `PartialType`
 - **Interceptor**: `TransformInterceptor` wraps all responses as `{ statusCode, message, data }`
-
-## Known issues
-
-- DTO decorators in `create-user.dto.ts` use lowercase names (`@isString`, `@minLength`, `@isEmail`) — these do **not** work with `class-validator`. Should be `@IsString()`, `@MinLength()`, `@IsEmail()`.
-- `UserService` depends on `LoggerService` (which was missing from `providers` in `UserModule` — needs to be added for DI to work at runtime).
-- `user.service.spec.ts` does not provide `LoggerService` — tests will fail unless it's mocked or provided.
-- ESLint `sourceType: 'commonjs'` despite ES module syntax in the config file.
 
 ## Testing quirks
 
 - Unit tests use `@nestjs/testing` `Test.createTestingModule` — ensure all providers the class depends on are included
+- `user.service.spec.ts` does not provide `LoggerService` — tests will fail unless it's mocked or provided
 - E2e tests use standalone Jest config at `test/jest-e2e.json` (rootDir `.`, regex `.e2e-spec.ts$`)
 - Coverage output goes to `/coverage`
+
+## Known issues
+
+- ESLint `sourceType: 'commonjs'` despite ES module syntax in the config file
+- `ApiKeyMiddleware` uses hardcoded `'secret-key-123'` (no env variable)
+- `user.service.spec.ts` needs `LoggerService` provider to pass
