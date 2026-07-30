@@ -36,7 +36,7 @@ export class UserService {
     createUser(dto: CreateUserDto) {
         this.logger.log('creating user');
 
-        const newUser: IUser = { id: this.users.length + 1, email: '', ...dto };
+        const newUser: IUser = { id: this.users.length + 1, ...dto };
         this.users.push(newUser);
 
         return newUser;
